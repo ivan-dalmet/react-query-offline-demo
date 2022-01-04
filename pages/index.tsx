@@ -15,6 +15,7 @@ import {
   chakra,
 } from '@chakra-ui/react';
 import Link from 'next/link';
+import { v4 as uuid } from 'uuid';
 
 import {
   useCreatePost,
@@ -28,7 +29,7 @@ const CreatePostForm = ({ ...rest }: StackProps) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    createPost({ title });
+    createPost({ id: uuid(), title });
     setTitle('');
   };
 
@@ -115,7 +116,7 @@ export default function IndexPage() {
               role="group"
             >
               <Stack direction="row" alignItems="center">
-                <Link href={`/posts/${post.id ?? post.__tempId}`} passHref>
+                <Link href={`/posts/${post.id}`} passHref>
                   <LinkOverlay
                     d="flex"
                     flex="1"
@@ -148,7 +149,7 @@ export default function IndexPage() {
                   colorScheme="red"
                   variant="outline"
                   size="sm"
-                  onClick={() => deletePost(post.id ?? post.__tempId)}
+                  onClick={() => deletePost(post.id)}
                 >
                   Delete
                 </Button>

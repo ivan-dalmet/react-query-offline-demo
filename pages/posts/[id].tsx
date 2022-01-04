@@ -25,12 +25,6 @@ export default function IndexPage() {
     router.replace('/');
   };
 
-  useEffect(() => {
-    if (post?.id) {
-      router.replace('/posts/' + post?.id);
-    }
-  }, [post?.id]);
-
   return (
     <Stack p="8" spacing="6" maxW="4xl" mx="auto">
       <Stack
