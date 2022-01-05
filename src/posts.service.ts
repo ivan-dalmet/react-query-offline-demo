@@ -25,6 +25,11 @@ export const getPost = async (id: string) => {
   return data;
 };
 
+export const updatePost = async (payload) => {
+  const { data } = await axios.patch(`/api/posts/${payload.id}`, payload);
+  return data;
+};
+
 export const deletePost = async (id: string) => {
   const { data } = await axios.delete(`/api/posts/${id}`);
   return data;
@@ -109,6 +114,85 @@ export const useCreatePost = (config: any = {}) => {
           ...oldData,
           pages: oldData?.pages?.map((posts) =>
             posts.map((post) => (post.id === payload.id ? data : post))
+          ),
+        };
+      });
+      config?.onSuccess?.(data, payload, context);
+    },
+  });
+};
+
+export const useUpdatePost = (config: any = {}) => {
+  const queryClient = useQueryClient();
+  const toast = useToast({
+    position: 'top-right',
+    variant: 'solid',
+    isClosable: true,
+  });
+  return useMutation((payload: any) => updatePost(payload), {
+    ...config,
+    onMutate: (payload) => {
+      // Optimistic update
+      toast({ status: 'success', title: `Post "${payload.title}" update` });
+
+      queryClient.cancelQueries(['posts']);
+      queryClient.cancelQueries(['post', payload.id]);
+
+      const prevPost = queryClient.getQueryData(['post', payload.id]);
+
+      queryClient.setQueryData(['post', payload.id], (post: any) => ({
+        ...post,
+        ...payload,
+        __offline: true,
+      }));
+
+      queryClient.setQueryData(['posts'], (oldData: any) => {
+        return {
+          ...oldData,
+          pages: oldData?.pages?.map((posts) =>
+            posts.map((post) =>
+              post.id === payload.id
+                ? { ...post, ...payload, __offline: true }
+                : post
+            )
+          ),
+        };
+      });
+
+      config?.onMutate?.(payload);
+
+      return { prevPost };
+    },
+    onError: (data: any, payload: any, context: any) => {
+      toast({
+        status: 'error',
+        title: `Failed to udpate post ${payload?.title}`,
+      });
+
+      queryClient.setQueryData(['post', payload.id], context.prevPost);
+      queryClient.setQueryData(['posts'], (oldData: any) => {
+        return {
+          ...oldData,
+          pages: oldData?.pages?.map((posts) =>
+            posts.map((post) =>
+              post.id === payload.id ? context.prevPost : post
+            )
+          ),
+        };
+      });
+
+      config?.onError?.(data, payload, context);
+    },
+    onSuccess: (data, payload, context: any) => {
+      // Update single query
+      queryClient.setQueryData(['post', data.id], data);
+
+      // Update post in list with data from the server
+      queryClient.setQueryData(['posts'], (oldData: any) => {
+        return {
+          ...oldData,
+          pages: oldData?.pages?.map((posts) =>
+            posts.map((post) => (post.id === data.id ? data : post))
           ),
         };
       });
