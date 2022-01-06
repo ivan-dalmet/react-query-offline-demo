@@ -41,7 +41,9 @@ export const useInfinitePosts = () => {
     ['posts'],
     ({ pageParam }) => getPosts({ lastId: pageParam }),
     {
-      getNextPageParam: (lastPage, pages) => lastPage.at(-1)?.id,
+      getNextPageParam: (lastPage) => lastPage.at(-1)?.id,
+      refetchOnReconnect: false,
+      refetchOnMount: false,
       onSuccess: (data) => {
         // Pre populate single queries
         data.pages?.flat().forEach((post) => {
