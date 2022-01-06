@@ -8,9 +8,9 @@ import {
   useQueryClient,
 } from 'react-query';
 
-export const getPosts = async ({ page = 0, size = 10 } = {}) => {
+export const getPosts = async ({ lastId = '', size = 10 } = {}) => {
   const { data } = await axios.get(
-    `/api/posts?_start=${page * size}&_limit=${size}`
+    `/api/posts?_lastId=${lastId}&_limit=${size}`
   );
   return data;
 };
@@ -39,9 +39,9 @@ export const useInfinitePosts = () => {
   const queryClient = useQueryClient();
   return useInfiniteQuery(
     ['posts'],
-    ({ pageParam = 0 }) => getPosts({ page: pageParam }),
+    ({ pageParam }) => getPosts({ lastId: pageParam }),
     {
-      getNextPageParam: (lastPage, pages) => pages?.length ?? 1,
+      getNextPageParam: (lastPage, pages) => lastPage.at(-1)?.id,
       onSuccess: (data) => {
         // Pre populate single queries
         data.pages?.flat().forEach((post) => {

@@ -4,13 +4,19 @@ import { db } from '@/utils/db';
 export default apiMethods({
   GET: {
     handler: async (req, res) => {
-      const { _start = '0', _limit = '10' } = req.query;
-      const skip = Number(_start);
-      const take = Number(_limit);
+      const { _lastId, _limit = '10' } = req.query;
+      const cursorOptions: any = _lastId
+        ? {
+            skip: 1,
+            cursor: {
+              id: _lastId.toString(),
+            },
+          }
+        : {};
       const posts = await db.post.findMany({
-        skip,
-        take,
+        take: Number(_limit),
         orderBy: { createdAt: 'desc' },
+        ...cursorOptions,
       });
       return res.json(posts);
     },
