@@ -76,6 +76,7 @@ export const useCreatePost = (config: any = {}) => {
       };
       toast({ status: 'success', title: `Post "${payload.title}" added` });
       queryClient.cancelQueries(['posts']);
+      queryClient.cancelQueries(['post', payload.id]);
 
       // Pre populate single query
       queryClient.setQueryData(['post', payload.id], tempPost);
@@ -84,7 +85,9 @@ export const useCreatePost = (config: any = {}) => {
       queryClient.setQueryData(['posts'], (oldData: any) => {
         return {
           ...oldData,
-          pages: [[tempPost], ...(oldData?.pages ?? [])],
+          pages: oldData?.pages?.map((posts, index) =>
+            index === 0 ? [tempPost, ...posts] : posts
+          ),
         };
       });
       config?.onMutate?.(payload);
@@ -113,7 +116,7 @@ export const useCreatePost = (config: any = {}) => {
         return {
           ...oldData,
           pages: oldData?.pages?.map((posts) =>
-            posts.map((post) => (post.id === payload.id ? data : post))
+            posts.map((post) => (post.id === data.id ? data : post))
           ),
         };
       });
@@ -231,7 +234,7 @@ export const useDeletePost = () => {
     onError: (error: AxiosError, id, context: any) => {
       toast({
         status: 'error',
-        title: `Failed to delete post "${error.response.data.title}"`,
+        title: `Failed to delete post "${error.response.data.title ?? id}"`,
       });
 
       // TODO: Improve this if multi updates

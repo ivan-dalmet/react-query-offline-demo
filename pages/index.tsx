@@ -106,7 +106,7 @@ export default function IndexPage() {
           {isEmpty && <Box>No posts</Box>}
           {loadedPosts?.map((post) => (
             <LinkBox
-              key={post.id ?? post.createdAt}
+              key={post.id}
               spacing="4"
               p="4"
               bg="white"
