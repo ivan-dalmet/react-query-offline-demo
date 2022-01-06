@@ -35,7 +35,7 @@ export default apiMethods({
       const postToDelete = await db.post.findUnique({
         where: { id: id.toString() },
       });
-      if (postToDelete.title === 'failToDelete') {
+      if (postToDelete?.title === 'failToDelete') {
         return res.status(500).json(postToDelete);
       }
       const post = await db.post.delete({ where: { id: id.toString() } });
